@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 )
 
 func color(ray Ray, world HitableList) Vector {
@@ -16,26 +17,27 @@ func color(ray Ray, world HitableList) Vector {
 
 func main() {
 	nx, ny := 200, 100
+	ns := 100
 	fmt.Printf("P3\n%v %v \n255\n", nx, ny)
-	lowerLeftCorner := Vector{-2, -1, -1}
-	horizontal := Vector{4, 0, 0}
-	vertical := Vector{0, 2, 0}
-	origin := Vector{0, 0, 0}
 	world := HitableList{
 		[]Hitable{
 			Sphere{Vector{0, 0, -1}, 0.5},
 			Sphere{Vector{0, -100.5, -1}, 100},
 		},
 	}
+	camera := Camera{}
 	for j := ny - 1; j >= 0; j-- {
 		for i := 0; i < nx; i++ {
-			u := float64(i) / float64(nx)
-			v := float64(j) / float64(ny)
-			r := Ray{
-				origin,
-				lowerLeftCorner.Add(horizontal.MultiplyScalar(u).Add(vertical.MultiplyScalar(v))),
+			col := Vector{0, 0, 0}
+			for s := 0; s < ns; s++ {
+				u := (float64(i) + rand.Float64()) / float64(nx)
+				v := (float64(j) + rand.Float64()) / float64(ny)
+				ray := camera.getRay(u, v)
+				//p := ray.pointAtPatameter(2.0)
+				col = col.Add(color(ray, world))
 			}
-			col := color(r, world)
+			col = col.DivideScalar(float64(ns))
+
 			ir := int(255.99 * col.x)
 			ig := int(255.99 * col.y)
 			ib := int(255.99 * col.z)
