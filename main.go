@@ -7,8 +7,9 @@ import (
 
 func color(ray Ray, world HitableList) Vector {
 	MAXFLOAT := 999999999.9
-	if hit, hitRecord := world.hit(ray, 0.0, MAXFLOAT); hit {
-		return hitRecord.normal.AddScalar(1).MultiplyScalar(0.5)
+	if hit, hitRecord := world.hit(ray, 0.001, MAXFLOAT); hit {
+		target := hitRecord.p.Add(hitRecord.normal).Add(randomInUnitSphere())
+		return color(Ray{hitRecord.p, target.Subtract(hitRecord.p)}, world).MultiplyScalar(0.5)
 	}
 	unitDirection := ray.direction.Normalise()
 	t := 0.5 * (unitDirection.y + 1.0)
@@ -37,6 +38,12 @@ func main() {
 				col = col.Add(color(ray, world))
 			}
 			col = col.DivideScalar(float64(ns))
+			// Gamera Correction
+			/*col = Vector{
+				math.Sqrt(col.x),
+				math.Sqrt(col.y),
+				math.Sqrt(col.z),
+			}*/
 
 			ir := int(255.99 * col.x)
 			ig := int(255.99 * col.y)

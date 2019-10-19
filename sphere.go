@@ -1,6 +1,9 @@
 package main
 
-import "math"
+import (
+	"math"
+	"math/rand"
+)
 
 type Sphere struct {
 	center Vector
@@ -32,4 +35,12 @@ func (sphere Sphere) hit(ray Ray, tMin float64, tMax float64) (bool, HitRecord) 
 		}
 	}
 	return false, HitRecord{}
+}
+
+func randomInUnitSphere() Vector {
+	v := Vector{rand.Float64(), rand.Float64(), rand.Float64()}
+	for v.SquaredLength() > 1 {
+		v = Vector{rand.Float64(), rand.Float64(), rand.Float64()}
+	}
+	return v
 }
