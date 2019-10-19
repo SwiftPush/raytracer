@@ -5,11 +5,16 @@ import (
 	"math/rand"
 )
 
-func color(ray Ray, world HitableList) Vector {
+func color(ray Ray, world HitableList, depth int) Vector {
 	MAXFLOAT := 999999999.9
 	if hit, hitRecord := world.hit(ray, 0.001, MAXFLOAT); hit {
-		target := hitRecord.p.Add(hitRecord.normal).Add(randomInUnitSphere())
-		return color(Ray{hitRecord.p, target.Subtract(hitRecord.p)}, world).MultiplyScalar(0.5)
+		if depth >= 50 {
+			return Vector{0, 0, 0}
+		}
+		if result, attenuation, scattered := hitRecord.material.scatter(ray, hitRecord); result {
+			return attenuation.Multiply(color(scattered, world, depth+1))
+		}
+		return Vector{0, 0, 0}
 	}
 	unitDirection := ray.direction.Normalise()
 	t := 0.5 * (unitDirection.y + 1.0)
@@ -22,8 +27,10 @@ func main() {
 	fmt.Printf("P3\n%v %v \n255\n", nx, ny)
 	world := HitableList{
 		[]Hitable{
-			Sphere{Vector{0, 0, -1}, 0.5},
-			Sphere{Vector{0, -100.5, -1}, 100},
+			Sphere{Vector{0, 0, -1}, 0.5, Diffuse{Vector{0.8, 0.3, 0.3}}},
+			Sphere{Vector{0, -100.5, -1}, 100, Diffuse{Vector{0.8, 0.8, 0}}},
+			Sphere{Vector{1, 0, -1}, 0.5, Metal{Vector{0.8, 0.6, 0.2}, 0.3}},
+			Sphere{Vector{-1, 0, -1}, 0.5, Metal{Vector{0.8, 0.8, 0.8}, 1.0}},
 		},
 	}
 	camera := Camera{}
@@ -35,7 +42,7 @@ func main() {
 				v := (float64(j) + rand.Float64()) / float64(ny)
 				ray := camera.getRay(u, v)
 				//p := ray.pointAtPatameter(2.0)
-				col = col.Add(color(ray, world))
+				col = col.Add(color(ray, world, 0))
 			}
 			col = col.DivideScalar(float64(ns))
 			// Gamera Correction

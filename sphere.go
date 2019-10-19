@@ -6,8 +6,9 @@ import (
 )
 
 type Sphere struct {
-	center Vector
-	radius float64
+	center   Vector
+	radius   float64
+	material Material
 }
 
 func (sphere Sphere) hit(ray Ray, tMin float64, tMax float64) (bool, HitRecord) {
@@ -20,6 +21,7 @@ func (sphere Sphere) hit(ray Ray, tMin float64, tMax float64) (bool, HitRecord) 
 		temp := (-b - math.Sqrt(b*b-a*c)) / a
 		if (temp < tMax) && (temp > tMin) {
 			hr := HitRecord{}
+			hr.material = sphere.material
 			hr.t = temp
 			hr.p = ray.pointAtPatameter(hr.t)
 			hr.normal = hr.p.Subtract(sphere.center).DivideScalar(sphere.radius)
@@ -28,6 +30,7 @@ func (sphere Sphere) hit(ray Ray, tMin float64, tMax float64) (bool, HitRecord) 
 		temp = (-b + math.Sqrt(b*b-a*c)) / a
 		if (temp < tMax) && (temp > tMin) {
 			hr := HitRecord{}
+			hr.material = sphere.material
 			hr.t = temp
 			hr.p = ray.pointAtPatameter(hr.t)
 			hr.normal = hr.p.Subtract(sphere.center).DivideScalar(sphere.radius)
