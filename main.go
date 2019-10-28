@@ -1,18 +1,22 @@
 package main
 
 import (
-	"fmt"
+	"image"
+	"image/color"
+	"image/png"
+	"log"
 	"math/rand"
+	"os"
 )
 
-func color(ray Ray, world HitableList, depth int) Vector {
+func colour(ray Ray, world HitableList, depth int) Vector {
 	MAXFLOAT := 999999999.9
 	if hit, hitRecord := world.hit(ray, 0.001, MAXFLOAT); hit {
 		if depth >= 50 {
 			return Vector{0, 0, 0}
 		}
 		if result, attenuation, scattered := hitRecord.material.scatter(ray, hitRecord); result {
-			return attenuation.Multiply(color(scattered, world, depth+1))
+			return attenuation.Multiply(colour(scattered, world, depth+1))
 		}
 		return Vector{0, 0, 0}
 	}
@@ -24,7 +28,7 @@ func color(ray Ray, world HitableList, depth int) Vector {
 func main() {
 	nx, ny := 200, 100
 	ns := 100
-	fmt.Printf("P3\n%v %v \n255\n", nx, ny)
+	image := image.NewRGBA(image.Rect(0, 0, nx, ny))
 	world := HitableList{
 		[]Hitable{
 			Sphere{Vector{0, 0, -1}, 0.5, Diffuse{Vector{0.8, 0.3, 0.3}}},
@@ -34,7 +38,7 @@ func main() {
 		},
 	}
 	camera := Camera{}
-	for j := ny - 1; j >= 0; j-- {
+	for j := 0; j < ny; j++ {
 		for i := 0; i < nx; i++ {
 			col := Vector{0, 0, 0}
 			for s := 0; s < ns; s++ {
@@ -42,7 +46,7 @@ func main() {
 				v := (float64(j) + rand.Float64()) / float64(ny)
 				ray := camera.getRay(u, v)
 				//p := ray.pointAtPatameter(2.0)
-				col = col.Add(color(ray, world, 0))
+				col = col.Add(colour(ray, world, 0))
 			}
 			col = col.DivideScalar(float64(ns))
 			// Gamera Correction
@@ -51,11 +55,20 @@ func main() {
 				math.Sqrt(col.y),
 				math.Sqrt(col.z),
 			}*/
-
-			ir := int(255.99 * col.x)
-			ig := int(255.99 * col.y)
-			ib := int(255.99 * col.z)
-			fmt.Printf("%v %v %v\n", ir, ig, ib)
+			pixelColour := color.RGBA{
+				R: uint8(255.99 * col.x),
+				G: uint8(255.99 * col.y),
+				B: uint8(255.99 * col.z),
+				A: 255,
+			}
+			image.SetRGBA(i, ny-j, pixelColour)
 		}
 	}
+	file, err := os.Create("out.png")
+	defer file.Close()
+	if err != nil {
+		log.Fatalf("Could not create output file\n")
+		os.Exit(1)
+	}
+	png.Encode(file, image)
 }
