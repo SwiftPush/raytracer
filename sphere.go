@@ -40,10 +40,10 @@ func (sphere Sphere) hit(ray Ray, tMin float64, tMax float64) (bool, HitRecord) 
 	return false, HitRecord{}
 }
 
-func randomInUnitSphere() Vector {
-	v := Vector{rand.Float64(), rand.Float64(), rand.Float64()}
+func randomInUnitSphere(rnd *rand.Rand) Vector {
+	v := Vector{rnd.Float64(), rnd.Float64(), rnd.Float64()}
 	for v.SquaredLength() > 1 {
-		v = Vector{rand.Float64(), rand.Float64(), rand.Float64()}
+		v = Vector{rnd.Float64(), rnd.Float64(), rnd.Float64()}
 	}
 	return v
 }

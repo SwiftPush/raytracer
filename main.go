@@ -7,16 +7,18 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"sync"
+	"time"
 )
 
-func colour(ray Ray, world HitableList, depth int) Vector {
+func colour(ray Ray, world HitableList, depth int, rnd *rand.Rand) Vector {
 	MAXFLOAT := 999999999.9
 	if hit, hitRecord := world.hit(ray, 0.001, MAXFLOAT); hit {
 		if depth >= 50 {
 			return Vector{0, 0, 0}
 		}
-		if result, attenuation, scattered := hitRecord.material.scatter(ray, hitRecord); result {
-			return attenuation.Multiply(colour(scattered, world, depth+1))
+		if result, attenuation, scattered := hitRecord.material.scatter(ray, hitRecord, rnd); result {
+			return attenuation.Multiply(colour(scattered, world, depth+1, rnd))
 		}
 		return Vector{0, 0, 0}
 	}
@@ -26,7 +28,7 @@ func colour(ray Ray, world HitableList, depth int) Vector {
 }
 
 func main() {
-	nx, ny := 200, 100
+	nx, ny := 400, 200
 	ns := 100
 	image := image.NewRGBA(image.Rect(0, 0, nx, ny))
 	world := HitableList{
@@ -39,32 +41,39 @@ func main() {
 		},
 	}
 	camera := Camera{}
+	var wg sync.WaitGroup
+	wg.Add(ny)
 	for j := 0; j < ny; j++ {
-		for i := 0; i < nx; i++ {
-			col := Vector{0, 0, 0}
-			for s := 0; s < ns; s++ {
-				u := (float64(i) + rand.Float64()) / float64(nx)
-				v := (float64(j) + rand.Float64()) / float64(ny)
-				ray := camera.getRay(u, v)
-				//p := ray.pointAtPatameter(2.0)
-				col = col.Add(colour(ray, world, 0))
+		go func(j int) {
+			defer wg.Done()
+			rnd := rand.New(rand.NewSource(time.Now().Unix() + int64(j)))
+			for i := 0; i < nx; i++ {
+				col := Vector{0, 0, 0}
+				for s := 0; s < ns; s++ {
+					u := (float64(i) + rnd.Float64()) / float64(nx)
+					v := (float64(j) + rnd.Float64()) / float64(ny)
+					ray := camera.getRay(u, v)
+					//p := ray.pointAtPatameter(2.0)
+					col = col.Add(colour(ray, world, 0, rnd))
+				}
+				col = col.DivideScalar(float64(ns))
+				// Gamera Correction
+				/*col = Vector{
+					math.Sqrt(col.x),
+					math.Sqrt(col.y),
+					math.Sqrt(col.z),
+				}*/
+				pixelColour := color.RGBA{
+					R: uint8(255.99 * col.x),
+					G: uint8(255.99 * col.y),
+					B: uint8(255.99 * col.z),
+					A: 255,
+				}
+				image.SetRGBA(i, ny-j, pixelColour)
 			}
-			col = col.DivideScalar(float64(ns))
-			// Gamera Correction
-			/*col = Vector{
-				math.Sqrt(col.x),
-				math.Sqrt(col.y),
-				math.Sqrt(col.z),
-			}*/
-			pixelColour := color.RGBA{
-				R: uint8(255.99 * col.x),
-				G: uint8(255.99 * col.y),
-				B: uint8(255.99 * col.z),
-				A: 255,
-			}
-			image.SetRGBA(i, ny-j, pixelColour)
-		}
+		}(j)
 	}
+	wg.Wait()
 	file, err := os.Create("out.png")
 	defer file.Close()
 	if err != nil {

@@ -26,7 +26,7 @@ func refract(v, n Vector, niOverNt float64) (result bool, refracted Vector) {
 	return
 }
 
-func (d Dielectric) scatter(ray Ray, hitRecord HitRecord) (result bool, attenuation Vector, scattered Ray) {
+func (d Dielectric) scatter(ray Ray, hitRecord HitRecord, rnd *rand.Rand) (result bool, attenuation Vector, scattered Ray) {
 	attenuation = Vector{1.0, 1.0, 1.0}
 
 	outwardNormal := Vector{}
@@ -46,7 +46,7 @@ func (d Dielectric) scatter(ray Ray, hitRecord HitRecord) (result bool, attenuat
 
 	if doesRefract, refracted := refract(ray.direction, outwardNormal, niOverNt); doesRefract {
 		reflectProbability := schlick(cosine, d.refIdx)
-		if rand.Float64() < reflectProbability {
+		if rnd.Float64() < reflectProbability {
 			scattered = Ray{hitRecord.p, reflected}
 		} else {
 			scattered = Ray{hitRecord.p, refracted}
