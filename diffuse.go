@@ -10,9 +10,12 @@ func NewDiffuse(albedo Vector) Diffuse {
 	}
 }
 
-func (d Diffuse) scatter(ray Ray, hitRecord HitRecord) (bool, Vector, Ray) {
+func (d Diffuse) scatter(ray Ray, hitRecord HitRecord) (result bool, attenuation Vector, scattered Ray) {
 	target := hitRecord.p.Add(hitRecord.normal).Add(randomInUnitSphere())
-	scattered := Ray{hitRecord.p, target.Subtract(hitRecord.p)}
-	attenuation := d.albedo
-	return true, attenuation, scattered
+
+	result = true
+	scattered = Ray{hitRecord.p, target.Subtract(hitRecord.p)}
+	attenuation = d.albedo
+
+	return
 }
