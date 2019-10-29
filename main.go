@@ -34,7 +34,8 @@ func main() {
 			Sphere{Vector{0, 0, -1}, 0.5, Diffuse{Vector{0.8, 0.3, 0.3}}},
 			Sphere{Vector{0, -100.5, -1}, 100, Diffuse{Vector{0.8, 0.8, 0}}},
 			Sphere{Vector{1, 0, -1}, 0.5, Metal{Vector{0.8, 0.6, 0.2}, 0.3}},
-			Sphere{Vector{-1, 0, -1}, 0.5, Metal{Vector{0.8, 0.8, 0.8}, 1.0}},
+			Sphere{Vector{-1, 0, -1}, 0.5, Dielectric{1.5}},
+			Sphere{Vector{-1, 0, -1}, -0.45, Dielectric{1.5}},
 		},
 	}
 	camera := Camera{}
