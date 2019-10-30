@@ -53,3 +53,11 @@ func (v Vector) Normalise() Vector {
 func (v Vector) Dot(a Vector) float64 {
 	return v.x*a.x + v.y*a.y + v.z*a.z
 }
+
+func (v Vector) Cross(a Vector) Vector {
+	return Vector{
+		x: v.y*a.z - v.z*a.y,
+		y: v.z*a.x - v.x*a.z,
+		z: v.x*a.y - v.y*a.x,
+	}
+}

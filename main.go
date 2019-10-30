@@ -42,7 +42,13 @@ func main() {
 			Sphere{Vector{-1, 0, -1}, -0.45, Dielectric{1.5}},
 		},
 	}
-	camera := Camera{}
+	camera := NewCamera(
+		Vector{-2, 2, 1},
+		Vector{0, 0, -1},
+		Vector{0, 1, 0},
+		20,
+		float64(nx)/float64(ny),
+	)
 	bar := pb.StartNew(ny)
 	var wg sync.WaitGroup
 	wg.Add(ny)
