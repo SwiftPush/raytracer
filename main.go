@@ -9,6 +9,8 @@ import (
 	"os"
 	"sync"
 	"time"
+
+	"github.com/cheggaaa/pb"
 )
 
 func colour(ray Ray, world HitableList, depth int, rnd *rand.Rand) Vector {
@@ -41,6 +43,7 @@ func main() {
 		},
 	}
 	camera := Camera{}
+	bar := pb.StartNew(ny)
 	var wg sync.WaitGroup
 	wg.Add(ny)
 	for j := 0; j < ny; j++ {
@@ -71,9 +74,11 @@ func main() {
 				}
 				image.SetRGBA(i, ny-j, pixelColour)
 			}
+			bar.Increment()
 		}(j)
 	}
 	wg.Wait()
+	bar.Finish()
 	file, err := os.Create("out.png")
 	defer file.Close()
 	if err != nil {
