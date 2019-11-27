@@ -30,7 +30,7 @@ func colour(ray Ray, world HitableList, depth int, rnd *rand.Rand) Vector {
 }
 
 func main() {
-	nx, ny := 400, 200
+	nx, ny := 600, 300
 	ns := 100
 	image := image.NewRGBA(image.Rect(0, 0, nx, ny))
 	world := HitableList{
@@ -42,12 +42,16 @@ func main() {
 			Sphere{Vector{-1, 0, -1}, -0.45, Dielectric{1.5}},
 		},
 	}
+	lookFrom := Vector{-2, 2, 1}
+	lookAt := Vector{0, 0, -1}
 	camera := NewCamera(
-		Vector{-2, 2, 1},
-		Vector{0, 0, -1},
+		lookFrom,
+		lookAt,
 		Vector{0, 1, 0},
 		20,
 		float64(nx)/float64(ny),
+		1.0,
+		lookFrom.Subtract(lookAt).Length(),
 	)
 	bar := pb.StartNew(ny)
 	var wg sync.WaitGroup
@@ -61,7 +65,7 @@ func main() {
 				for s := 0; s < ns; s++ {
 					u := (float64(i) + rnd.Float64()) / float64(nx)
 					v := (float64(j) + rnd.Float64()) / float64(ny)
-					ray := camera.getRay(u, v)
+					ray := camera.getRay(rnd, u, v)
 					//p := ray.pointAtPatameter(2.0)
 					col = col.Add(colour(ray, world, 0, rnd))
 				}
