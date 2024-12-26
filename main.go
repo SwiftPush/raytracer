@@ -1,10 +1,12 @@
 package main
 
 import (
+	"errors"
 	"image"
 	"image/color"
 	"image/png"
 	"log"
+	"math"
 	"math/rand"
 	"os"
 	"sync"
@@ -13,14 +15,18 @@ import (
 	"github.com/cheggaaa/pb"
 )
 
-func colour(ray Ray, world HitableList, depth int, rnd *rand.Rand) Vector {
-	MAXFLOAT := 999999999.9
-	if hit, hitRecord := world.hit(ray, 0.001, MAXFLOAT); hit {
-		if depth >= 50 {
+type ImageOptions struct {
+	nX, nY int
+	nS     int
+}
+
+func colour(ray Ray, objects HitableList, depth int, rnd *rand.Rand) Vector {
+	if hit, hitRecord := objects.hit(ray, 0.001, math.MaxFloat64); hit {
+		if depth >= 10 {
 			return Vector{0, 0, 0}
 		}
 		if result, attenuation, scattered := hitRecord.material.scatter(ray, hitRecord, rnd); result {
-			return attenuation.Multiply(colour(scattered, world, depth+1, rnd))
+			return attenuation.Multiply(colour(scattered, objects, depth+1, rnd))
 		}
 		return Vector{0, 0, 0}
 	}
@@ -29,71 +35,80 @@ func colour(ray Ray, world HitableList, depth int, rnd *rand.Rand) Vector {
 	return Vector{1, 1, 1}.MultiplyScalar(1.0 - t).Add(Vector{0.5, 0.7, 1.0}.MultiplyScalar(t))
 }
 
-func main() {
-	nx, ny := 600, 300
-	ns := 100
-	image := image.NewRGBA(image.Rect(0, 0, nx, ny))
-	world := HitableList{
-		[]Hitable{
-			Sphere{Vector{0, 0, -1}, 0.5, Diffuse{Vector{0.8, 0.3, 0.3}}},
-			Sphere{Vector{0, -100.5, -1}, 100, Diffuse{Vector{0.8, 0.8, 0}}},
-			Sphere{Vector{1, 0, -1}, 0.5, Metal{Vector{0.8, 0.6, 0.2}, 0.3}},
-			Sphere{Vector{-1, 0, -1}, 0.5, Dielectric{1.5}},
-			Sphere{Vector{-1, 0, -1}, -0.45, Dielectric{1.5}},
-		},
+func renderPixel(scene Scene, rnd *rand.Rand, io ImageOptions, i, j int) color.RGBA {
+	col := Vector{0, 0, 0}
+	for s := 0; s < io.nS; s++ {
+		u := (float64(i) + rnd.Float64()) / float64(io.nX)
+		v := (float64(j) + rnd.Float64()) / float64(io.nY)
+		ray := scene.camera.getRay(rnd, u, v)
+		//p := ray.pointAtPatameter(2.0)
+		col = col.Add(colour(ray, scene.objects, 0, rnd))
 	}
-	lookFrom := Vector{-2, 2, 1}
-	lookAt := Vector{0, 0, -1}
-	camera := NewCamera(
-		lookFrom,
-		lookAt,
-		Vector{0, 1, 0},
-		20,
-		float64(nx)/float64(ny),
-		1.0,
-		lookFrom.Subtract(lookAt).Length(),
-	)
-	bar := pb.StartNew(ny)
+	col = col.DivideScalar(float64(io.nS))
+	// Gamera Correction
+	/*col = Vector{
+		math.Sqrt(col.x),
+		math.Sqrt(col.y),
+		math.Sqrt(col.z),
+	}*/
+	pixelColour := color.RGBA{
+		R: uint8(255.99 * col.x),
+		G: uint8(255.99 * col.y),
+		B: uint8(255.99 * col.z),
+		A: 255,
+	}
+	return pixelColour
+}
+
+func renderImage(io ImageOptions, scene Scene) *image.RGBA {
+	frameBuffer := image.NewRGBA(image.Rect(0, 0, io.nX, io.nY))
+
+	bar := pb.StartNew(io.nY)
 	var wg sync.WaitGroup
-	wg.Add(ny)
-	for j := 0; j < ny; j++ {
+	wg.Add(io.nY)
+	for j := 0; j < io.nY; j++ {
 		go func(j int) {
 			defer wg.Done()
 			rnd := rand.New(rand.NewSource(time.Now().Unix() + int64(j)))
-			for i := 0; i < nx; i++ {
-				col := Vector{0, 0, 0}
-				for s := 0; s < ns; s++ {
-					u := (float64(i) + rnd.Float64()) / float64(nx)
-					v := (float64(j) + rnd.Float64()) / float64(ny)
-					ray := camera.getRay(rnd, u, v)
-					//p := ray.pointAtPatameter(2.0)
-					col = col.Add(colour(ray, world, 0, rnd))
-				}
-				col = col.DivideScalar(float64(ns))
-				// Gamera Correction
-				/*col = Vector{
-					math.Sqrt(col.x),
-					math.Sqrt(col.y),
-					math.Sqrt(col.z),
-				}*/
-				pixelColour := color.RGBA{
-					R: uint8(255.99 * col.x),
-					G: uint8(255.99 * col.y),
-					B: uint8(255.99 * col.z),
-					A: 255,
-				}
-				image.SetRGBA(i, ny-j, pixelColour)
+			for i := 0; i < io.nX; i++ {
+				pixelColour := renderPixel(scene, rnd, io, i, j)
+				frameBuffer.SetRGBA(i, io.nY-j, pixelColour)
 			}
 			bar.Increment()
 		}(j)
 	}
 	wg.Wait()
 	bar.Finish()
+
+	return frameBuffer
+}
+
+func writeFrameToFile(filename string, frameBuffer *image.RGBA) error {
 	file, err := os.Create("out.png")
 	defer file.Close()
 	if err != nil {
-		log.Fatalf("Could not create output file\n")
+		return errors.New("could not create output file")
+	}
+
+	err = png.Encode(file, frameBuffer)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func main() {
+	io := ImageOptions{
+		nX: 600, nY: 300,
+		nS: 100,
+	}
+	scene := exampleScene1(io.nX, io.nY)
+	frameBuffer := renderImage(io, scene)
+
+	err := writeFrameToFile("out.png", frameBuffer)
+	if err != nil {
+		log.Fatalf(err.Error())
 		os.Exit(1)
 	}
-	png.Encode(file, image)
 }
