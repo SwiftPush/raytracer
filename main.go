@@ -84,11 +84,11 @@ func renderImage(io ImageOptions, scene Scene) *image.RGBA {
 }
 
 func writeFrameToFile(filename string, frameBuffer *image.RGBA) error {
-	file, err := os.Create("out.png")
-	defer file.Close()
+	file, err := os.Create(filename)
 	if err != nil {
 		return errors.New("could not create output file")
 	}
+	defer file.Close()
 
 	err = png.Encode(file, frameBuffer)
 	if err != nil {
@@ -108,7 +108,7 @@ func main() {
 
 	err := writeFrameToFile("out.png", frameBuffer)
 	if err != nil {
-		log.Fatalf(err.Error())
+		log.Fatal(err.Error())
 		os.Exit(1)
 	}
 }

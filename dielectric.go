@@ -29,7 +29,7 @@ func refract(v, n Vector, niOverNt float64) (result bool, refracted Vector) {
 func (d Dielectric) scatter(ray Ray, hitRecord HitRecord, rnd *rand.Rand) (result bool, attenuation Vector, scattered Ray) {
 	attenuation = Vector{1.0, 1.0, 1.0}
 
-	outwardNormal := Vector{}
+	var outwardNormal Vector
 	niOverNt := 0.0
 	cosine := 0.0
 	if ray.direction.Dot(hitRecord.normal) > 0 {
