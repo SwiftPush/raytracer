@@ -1,12 +1,13 @@
 module raytracer
 
-go 1.13
+go 1.23.3
+
+require github.com/cheggaaa/pb v2.0.7+incompatible
 
 require (
-	github.com/cheggaaa/pb v2.0.7+incompatible
-	github.com/mattn/go-colorable v0.1.4 // indirect
-	github.com/mattn/go-isatty v0.0.10 // indirect
-	golang.org/x/sys v0.0.0-20191105142833-ac3223d80179 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
+	golang.org/x/sys v0.28.0 // indirect
 	gopkg.in/VividCortex/ewma.v1 v1.1.1 // indirect
 	gopkg.in/cheggaaa/pb.v2 v2.0.7 // indirect
 	gopkg.in/fatih/color.v1 v1.7.0 // indirect
