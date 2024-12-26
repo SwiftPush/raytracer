@@ -1,14 +1,14 @@
-package main
+package internal
 
 import (
 	"errors"
 	"image"
 	"image/color"
 	"image/png"
-	"log"
 	"math"
 	"math/rand"
 	"os"
+	"raytracer/internal/geometry"
 	"sync"
 	"time"
 
@@ -20,23 +20,23 @@ type ImageOptions struct {
 	nS     int
 }
 
-func colour(ray Ray, objects HitableList, depth int, rnd *rand.Rand) Vector {
+func colour(ray Ray, objects HitableList, depth int, rnd *rand.Rand) geometry.Vector {
 	if hit, hitRecord := objects.hit(ray, 0.001, math.MaxFloat64); hit {
 		if depth >= 10 {
-			return Vector{0, 0, 0}
+			return geometry.Vector{X: 0, Y: 0, Z: 0}
 		}
 		if result, attenuation, scattered := hitRecord.material.scatter(ray, hitRecord, rnd); result {
 			return attenuation.Multiply(colour(scattered, objects, depth+1, rnd))
 		}
-		return Vector{0, 0, 0}
+		return geometry.Vector{X: 0, Y: 0, Z: 0}
 	}
 	unitDirection := ray.direction.Normalise()
-	t := 0.5 * (unitDirection.y + 1.0)
-	return Vector{1, 1, 1}.MultiplyScalar(1.0 - t).Add(Vector{0.5, 0.7, 1.0}.MultiplyScalar(t))
+	t := 0.5 * (unitDirection.Y + 1.0)
+	return geometry.Vector{X: 1, Y: 1, Z: 1}.MultiplyScalar(1.0 - t).Add(geometry.Vector{X: 0.5, Y: 0.7, Z: 1.0}.MultiplyScalar(t))
 }
 
 func renderPixel(scene Scene, rnd *rand.Rand, io ImageOptions, i, j int) color.RGBA {
-	col := Vector{0, 0, 0}
+	col := geometry.Vector{X: 0, Y: 0, Z: 0}
 	for s := 0; s < io.nS; s++ {
 		u := (float64(i) + rnd.Float64()) / float64(io.nX)
 		v := (float64(j) + rnd.Float64()) / float64(io.nY)
@@ -46,15 +46,15 @@ func renderPixel(scene Scene, rnd *rand.Rand, io ImageOptions, i, j int) color.R
 	}
 	col = col.DivideScalar(float64(io.nS))
 	// Gamera Correction
-	/*col = Vector{
+	/*col = geometry.Vector{
 		math.Sqrt(col.x),
 		math.Sqrt(col.y),
 		math.Sqrt(col.z),
 	}*/
 	pixelColour := color.RGBA{
-		R: uint8(255.99 * col.x),
-		G: uint8(255.99 * col.y),
-		B: uint8(255.99 * col.z),
+		R: uint8(255.99 * col.X),
+		G: uint8(255.99 * col.Y),
+		B: uint8(255.99 * col.Z),
 		A: 255,
 	}
 	return pixelColour
@@ -98,7 +98,7 @@ func writeFrameToFile(filename string, frameBuffer *image.RGBA) error {
 	return nil
 }
 
-func main() {
+func Render() error {
 	io := ImageOptions{
 		nX: 600, nY: 300,
 		nS: 100,
@@ -108,7 +108,8 @@ func main() {
 
 	err := writeFrameToFile("out.png", frameBuffer)
 	if err != nil {
-		log.Fatal(err.Error())
-		os.Exit(1)
+		return err
 	}
+
+	return nil
 }

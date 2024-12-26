@@ -1,12 +1,13 @@
-package main
+package internal
 
 import (
 	"math"
 	"math/rand"
+	"raytracer/internal/geometry"
 )
 
 type Sphere struct {
-	center   Vector
+	center   geometry.Vector
 	radius   float64
 	material Material
 }
@@ -40,10 +41,10 @@ func (sphere Sphere) hit(ray Ray, tMin float64, tMax float64) (bool, HitRecord) 
 	return false, HitRecord{}
 }
 
-func randomInUnitSphere(rnd *rand.Rand) Vector {
-	v := Vector{rnd.Float64(), rnd.Float64(), rnd.Float64()}
+func randomInUnitSphere(rnd *rand.Rand) geometry.Vector {
+	v := geometry.Vector{X: rnd.Float64(), Y: rnd.Float64(), Z: rnd.Float64()}
 	for v.SquaredLength() > 1 {
-		v = Vector{rnd.Float64(), rnd.Float64(), rnd.Float64()}
+		v = geometry.Vector{X: rnd.Float64(), Y: rnd.Float64(), Z: rnd.Float64()}
 	}
 	return v
 }

@@ -1,8 +1,9 @@
-package main
+package internal
 
 import (
 	"math"
 	"math/rand"
+	"raytracer/internal/geometry"
 )
 
 type Dielectric struct {
@@ -15,7 +16,7 @@ func schlick(cosine, refIdx float64) float64 {
 	return r0 + (1-r0)*math.Pow((1-cosine), 5)
 }
 
-func refract(v, n Vector, niOverNt float64) (result bool, refracted Vector) {
+func refract(v, n geometry.Vector, niOverNt float64) (result bool, refracted geometry.Vector) {
 	uv := v.Normalise()
 	dt := uv.Dot(n)
 	discriminant := 1.0 - niOverNt*niOverNt*(1-dt*dt)
@@ -26,10 +27,10 @@ func refract(v, n Vector, niOverNt float64) (result bool, refracted Vector) {
 	return
 }
 
-func (d Dielectric) scatter(ray Ray, hitRecord HitRecord, rnd *rand.Rand) (result bool, attenuation Vector, scattered Ray) {
-	attenuation = Vector{1.0, 1.0, 1.0}
+func (d Dielectric) scatter(ray Ray, hitRecord HitRecord, rnd *rand.Rand) (result bool, attenuation geometry.Vector, scattered Ray) {
+	attenuation = geometry.Vector{X: 1.0, Y: 1.0, Z: 1.0}
 
-	var outwardNormal Vector
+	var outwardNormal geometry.Vector
 	niOverNt := 0.0
 	cosine := 0.0
 	if ray.direction.Dot(hitRecord.normal) > 0 {
