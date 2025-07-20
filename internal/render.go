@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"errors"
+	"fmt"
 	"image"
 	"image/color"
 	"image/png"
@@ -86,7 +86,7 @@ func renderImage(io ImageOptions, scene Scene) *image.RGBA {
 func writeFrameToFile(filename string, frameBuffer *image.RGBA) error {
 	file, err := os.Create(filename)
 	if err != nil {
-		return errors.New("could not create output file")
+		return fmt.Errorf("could not create output file: %w", err)
 	}
 	defer file.Close()
 
