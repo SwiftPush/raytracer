@@ -98,7 +98,7 @@ func writeFrameToFile(filename string, frameBuffer *image.RGBA) error {
 	return nil
 }
 
-func Render() error {
+func Render(outputFilename string) error {
 	io := ImageOptions{
 		nX: 600, nY: 300,
 		nS: 100,
@@ -106,7 +106,7 @@ func Render() error {
 	scene := exampleScene1(io.nX, io.nY)
 	frameBuffer := renderImage(io, scene)
 
-	err := writeFrameToFile("out.png", frameBuffer)
+	err := writeFrameToFile(outputFilename, frameBuffer)
 	if err != nil {
 		return err
 	}
