@@ -24,7 +24,7 @@ func (sphere Sphere) hit(ray Ray, tMin float64, tMax float64) (bool, HitRecord) 
 			hr := HitRecord{}
 			hr.material = sphere.material
 			hr.t = temp
-			hr.p = ray.pointAtPatameter(hr.t)
+			hr.p = ray.pointAtParameter(hr.t)
 			hr.normal = hr.p.Subtract(sphere.center).DivideScalar(sphere.radius)
 			return true, hr
 		}
@@ -33,7 +33,7 @@ func (sphere Sphere) hit(ray Ray, tMin float64, tMax float64) (bool, HitRecord) 
 			hr := HitRecord{}
 			hr.material = sphere.material
 			hr.t = temp
-			hr.p = ray.pointAtPatameter(hr.t)
+			hr.p = ray.pointAtParameter(hr.t)
 			hr.normal = hr.p.Subtract(sphere.center).DivideScalar(sphere.radius)
 			return true, hr
 		}

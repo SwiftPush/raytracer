@@ -41,7 +41,7 @@ func renderPixel(scene Scene, rnd *rand.Rand, io ImageOptions, i, j int) color.R
 		u := (float64(i) + rnd.Float64()) / float64(io.nX)
 		v := (float64(j) + rnd.Float64()) / float64(io.nY)
 		ray := scene.camera.getRay(rnd, u, v)
-		//p := ray.pointAtPatameter(2.0)
+		//p := ray.pointAtParameter(2.0)
 		col = col.Add(colour(ray, scene.objects, 0, rnd))
 	}
 	col = col.DivideScalar(float64(io.nS))
