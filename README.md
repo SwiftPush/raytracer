@@ -1,5 +1,7 @@
 # 🌟 Raytracer
 
+![example render](example.png)
+
 A fun little 3D raytracer written in Go that turns math into magic! Watch as simple geometric primitives become beautiful, photorealistic renders with reflections, refractions, and depth of field effects.
 
 ## 🎨 What Does It Do?
