@@ -101,7 +101,7 @@ func writeFrameToFile(filename string, frameBuffer *image.RGBA) error {
 func Render(outputFilename string) error {
 	io := ImageOptions{
 		nX: 600, nY: 300,
-		nS: 100,
+		nS: 300,
 	}
 	scene := exampleScene1(io.nX, io.nY)
 	frameBuffer := renderImage(io, scene)
