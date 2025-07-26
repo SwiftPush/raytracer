@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"os"
 	"raytracer/internal/geometry"
+	"runtime"
 	"sync"
 	"time"
 
@@ -79,17 +80,56 @@ func writeFrameToFile(filename string, frameBuffer *image.RGBA) error {
 }
 
 func Render(outputFilename string) error {
+	// Record start time
+	startTime := time.Now()
+	
 	io := ImageOptions{
 		nX: 600, nY: 300,
 		nS: 300,
 	}
 	scene := exampleScene1(io.nX, io.nY)
+	
+	fmt.Printf("Rendering %dx%d image with up to %d samples per pixel...\n", io.nX, io.nY, io.nS)
+	fmt.Printf("Using %d CPU cores\n", runtime.NumCPU())
+	
 	frameBuffer := renderImage(io, scene)
-
+	
+	// Calculate timing
+	wallTime := time.Since(startTime)
+	
 	err := writeFrameToFile(outputFilename, frameBuffer)
 	if err != nil {
 		return err
 	}
+	
+	// Calculate some interesting stats
+	totalPixels := int64(io.nX * io.nY)
+	maxPossibleSamples := totalPixels * int64(io.nS)
+	
+	// Print timing statistics
+	fmt.Printf("\n=== Render Statistics ===\n")
+	fmt.Printf("Wall time:        %s\n", formatDuration(wallTime))
+	fmt.Printf("Estimated CPU:    %s (%.1fx parallelism)\n", 
+		formatDuration(time.Duration(float64(wallTime)*float64(runtime.NumCPU())*0.8)),
+		float64(runtime.NumCPU())*0.8)
+	fmt.Printf("Total pixels:     %d\n", totalPixels)
+	fmt.Printf("Max samples:      %d per pixel (%d total possible)\n", io.nS, maxPossibleSamples)
+	fmt.Printf("Performance:      %.0f pixels/second\n", float64(totalPixels)/wallTime.Seconds())
+	fmt.Printf("Throughput:       %.1f megasamples/second\n", float64(maxPossibleSamples)/wallTime.Seconds()/1e6)
+	fmt.Printf("Output file:      %s\n", outputFilename)
 
 	return nil
 }
+
+func formatDuration(d time.Duration) string {
+	if d >= time.Minute {
+		return fmt.Sprintf("%.2gm", d.Minutes())
+	} else if d >= time.Second {
+		return fmt.Sprintf("%.2gs", d.Seconds())
+	} else if d >= time.Millisecond {
+		return fmt.Sprintf("%.2gms", float64(d.Nanoseconds())/1e6)
+	} else {
+		return fmt.Sprintf("%.2gμs", float64(d.Nanoseconds())/1e3)
+	}
+}
+
