@@ -36,29 +36,9 @@ func colour(ray Ray, objects HitableList, depth int, rnd *rand.Rand) geometry.Ve
 }
 
 func renderPixel(scene Scene, rnd *rand.Rand, io ImageOptions, i, j int) color.RGBA {
-	col := geometry.Vector{X: 0, Y: 0, Z: 0}
-	for s := 0; s < io.nS; s++ {
-		u := (float64(i) + rnd.Float64()) / float64(io.nX)
-		v := (float64(j) + rnd.Float64()) / float64(io.nY)
-		ray := scene.camera.getRay(rnd, u, v)
-		//p := ray.pointAtParameter(2.0)
-		col = col.Add(colour(ray, scene.objects, 0, rnd))
-	}
-	col = col.DivideScalar(float64(io.nS))
-	// Gamera Correction
-	/*col = geometry.Vector{
-		math.Sqrt(col.x),
-		math.Sqrt(col.y),
-		math.Sqrt(col.z),
-	}*/
-	pixelColour := color.RGBA{
-		R: uint8(255.99 * col.X),
-		G: uint8(255.99 * col.Y),
-		B: uint8(255.99 * col.Z),
-		A: 255,
-	}
-	return pixelColour
+	return renderPixelAdaptive(scene, rnd, io, i, j)
 }
+
 
 func renderImage(io ImageOptions, scene Scene) *image.RGBA {
 	frameBuffer := image.NewRGBA(image.Rect(0, 0, io.nX, io.nY))
