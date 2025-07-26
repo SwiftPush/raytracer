@@ -6,23 +6,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Build and Run
 ```bash
-go build -o raytracer cmd/main.go
-./raytracer --output image.png
+go run cmd/main.go --output image.png
 ```
 
 The raytracer requires an output filename to be specified using the `--output` or `-o` flag.
 
 **Usage Examples:**
 ```bash
-./raytracer --output my_render.png    # Long flag
-./raytracer -o my_render.png          # Short flag
-./raytracer --help                    # Show help and usage
+go run cmd/main.go -o out.png
 ```
 
 ### Testing
-```bash
-go test ./...
-```
+This project currently has no tests.
 
 ### Dependencies
 ```bash
@@ -67,3 +62,11 @@ The `exampleScene1` function in `scene.go` defines the default scene with multip
 - `github.com/cheggaaa/pb`: Progress bar for rendering feedback
 - `github.com/spf13/cobra`: CLI framework for command line argument parsing
 - Standard Go libraries for image processing and concurrency
+
+## Development Workflow
+
+When implementing new features:
+1. Write/modify the code
+2. Test by running: `go run cmd/main.go --output out.png`
+3. Check the rendered output in `out.png` to verify the feature works correctly
+4. Repeat steps 1-3 if adjustments are needed
